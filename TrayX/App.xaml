@@ -1,0 +1,24 @@
+﻿<Application x:Class="TrayX.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:tb="http://www.hardcodet.net/taskbar"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:taskbarNotification="clr-namespace:Hardcodet.Wpf.TaskbarNotification;assembly=Hardcodet.NotifyIcon.Wpf">
+    <Application.Resources>
+        <taskbarNotification:TaskbarIcon x:Key="TrayIcon"
+                        IconSource="pack://application:,,,/Resources/icon.ico"
+                        ToolTipText="System Monitor"
+                        MenuActivation="RightClick">
+
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="🖥️ Show Window" Click="Tray_ShowWindow"/>
+                    <MenuItem Header="🧹 Clean RAM (soon)" IsEnabled="False"/>
+                    <Separator/>
+                    <MenuItem Header="❌ Exit" Click="Tray_Exit"/>
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </taskbarNotification:TaskbarIcon>
+
+    </Application.Resources>
+    
+</Application>
