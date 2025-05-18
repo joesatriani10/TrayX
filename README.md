@@ -3,6 +3,10 @@
 **TrayX** is a modern, lightweight system tray application for Windows that provides real-time monitoring of CPU, RAM, disk usage, and network activity.  
 Built with WPF and .NET 8, it’s designed for IT professionals and power users who want clean system stats — always accessible, without clutter.
 
+## 🖼 Screenshot
+
+![TrayX Screenshot](docs/screenshot.png)
+
 ---
 
 ## ✨ Features
