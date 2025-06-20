@@ -46,9 +46,9 @@ public partial class MainWindow
         // Get the name of the first active network interface
         var networkInterfaces = new PerformanceCounterCategory("Network Interface").GetInstanceNames();
         var activeInterface = networkInterfaces.FirstOrDefault(name =>
-            !name.ToLower().Contains("loopback") &&
-            !name.ToLower().Contains("pseudo") &&
-            !name.ToLower().Contains("isatap"));
+            !name.Contains("loopback", StringComparison.OrdinalIgnoreCase) &&
+            !name.Contains("pseudo", StringComparison.OrdinalIgnoreCase) &&
+            !name.Contains("isatap", StringComparison.OrdinalIgnoreCase));
 
         if (activeInterface != null)
         {
