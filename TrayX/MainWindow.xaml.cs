@@ -183,6 +183,10 @@ public partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         timer.Stop();
+        cpuCounter.Dispose();
+        ramCounter.Dispose();
+        netSentCounter?.Dispose();
+        netReceivedCounter?.Dispose();
         base.OnClosed(e);
     }
     
