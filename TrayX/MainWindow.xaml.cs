@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private DispatcherTimer timer;
     private PerformanceCounter netSentCounter;
     private PerformanceCounter netReceivedCounter;
+    private DateTime lastDiskUpdate;
 
 
     public MainWindow()
@@ -36,6 +37,7 @@ public partial class MainWindow : Window
             Interval = TimeSpan.FromSeconds(1)
         };
         timer.Tick += Timer_Tick;
+        lastDiskUpdate = DateTime.MinValue;
         timer.Start();
         
         // Get name of the first active network interface
@@ -128,23 +130,26 @@ public partial class MainWindow : Window
         
         
 
-        // Get disk usage info
-        var drives = DriveInfo.GetDrives()
-            .Where(d => d.IsReady && d.DriveType == DriveType.Fixed);
-
-        var sb = new StringBuilder();
-
-        foreach (var d in drives)
+        if (DateTime.UtcNow - lastDiskUpdate > TimeSpan.FromSeconds(10))
         {
-            double total = d.TotalSize / (1024.0 * 1024 * 1024);           // GB
-            double free = d.AvailableFreeSpace / (1024.0 * 1024 * 1024);   // GB
-            double used = total - free;
-            double percentUsed = (used / total) * 100;
+            var drives = DriveInfo.GetDrives()
+                .Where(d => d.IsReady && d.DriveType == DriveType.Fixed);
 
-            sb.AppendLine($"{d.Name} → {used:0.0} GB used / {total:0.0} GB ({percentUsed:0.0}%)");
+            var sb = new StringBuilder();
+
+            foreach (var d in drives)
+            {
+                double total = d.TotalSize / (1024.0 * 1024 * 1024);           // GB
+                double free = d.AvailableFreeSpace / (1024.0 * 1024 * 1024);   // GB
+                double used = total - free;
+                double percentUsed = (used / total) * 100;
+
+                sb.AppendLine($"{d.Name} → {used:0.0} GB used / {total:0.0} GB ({percentUsed:0.0}%)");
+            }
+
+            DiskText.Text = sb.ToString();
+            lastDiskUpdate = DateTime.UtcNow;
         }
-
-        DiskText.Text = sb.ToString();
         
         if (netSentCounter != null && netReceivedCounter != null)
         {
