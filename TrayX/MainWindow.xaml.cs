@@ -2,6 +2,9 @@
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -19,9 +22,9 @@ public partial class MainWindow
     private readonly PerformanceCounter? _netSentCounter;
     private readonly PerformanceCounter? _netReceivedCounter;
     private DateTime _lastDiskUpdate;
-    private string _driveInfoCache = string.Empty;
     private bool _isUpdatingDriveInfo;
     private readonly float _totalMemoryMb;
+    public ObservableCollection<DriveUsage> Drives { get; }
 
 
     public MainWindow()
@@ -36,9 +39,10 @@ public partial class MainWindow
         
         CpuText.Text = "Initializing...";
         RamText.Text = "Initializing...";
-        DiskText.Text = "Loading disks...";
-        _driveInfoCache = "Loading disks...";
         NetworkText.Text = "Detecting interface...";
+
+        Drives = new ObservableCollection<DriveUsage>();
+        DataContext = this;
 
 
         _timer = new DispatcherTimer
@@ -143,8 +147,6 @@ public partial class MainWindow
         
         
 
-        DiskText.Text = _driveInfoCache;
-
         if (!_isUpdatingDriveInfo && DateTime.UtcNow - _lastDiskUpdate > TimeSpan.FromSeconds(10))
         {
             _isUpdatingDriveInfo = true;
@@ -154,22 +156,28 @@ public partial class MainWindow
                 var drives = DriveInfo.GetDrives()
                     .Where(d => d.IsReady && d.DriveType == DriveType.Fixed);
 
-                var sb = new StringBuilder();
+                var list = new List<DriveUsage>();
                 foreach (var d in drives)
                 {
                     double total = d.TotalSize / (1024.0 * 1024 * 1024);           // GB
                     double free = d.AvailableFreeSpace / (1024.0 * 1024 * 1024);   // GB
                     double used = total - free;
-                    double percentUsed = (used / total) * 100;
+                    double percentUsed = total > 0 ? (used / total) * 100 : 0;
 
-                    sb.AppendLine($"{d.Name} → {used:0.0} GB used / {total:0.0} GB ({percentUsed:0.0}%)");
+                    list.Add(new DriveUsage
+                    {
+                        Name = d.Name,
+                        UsedGb = used,
+                        TotalGb = total,
+                        PercentUsed = percentUsed
+                    });
                 }
 
-                var result = sb.ToString();
                 Dispatcher.Invoke(() =>
                 {
-                    _driveInfoCache = result;
-                    DiskText.Text = result;
+                    Drives.Clear();
+                    foreach (var item in list)
+                        Drives.Add(item);
                     _isUpdatingDriveInfo = false;
                 });
             });
