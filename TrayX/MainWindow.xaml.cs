@@ -238,7 +238,9 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error clearing temp: {ex.Message}");
+            ErrorLogger.LogException(ex);
+            MessageBox.Show("An error occurred while clearing temporary files. Please check the log for details.",
+                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -258,7 +260,9 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error flushing DNS: {ex.Message}");
+            ErrorLogger.LogException(ex);
+            MessageBox.Show("An error occurred while flushing the DNS cache. Please check the log for details.",
+                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
     
@@ -280,7 +284,9 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            MessageBox.Show("Error: " + ex.Message, "Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            ErrorLogger.LogException(ex);
+            MessageBox.Show("An error occurred while emptying the Recycle Bin. Please check the log for details.",
+                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
