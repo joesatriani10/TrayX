@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -18,6 +19,8 @@ public partial class MainWindow
     private readonly PerformanceCounter? _netSentCounter;
     private readonly PerformanceCounter? _netReceivedCounter;
     private DateTime _lastDiskUpdate;
+    private string _driveInfoCache = string.Empty;
+    private bool _isUpdatingDriveInfo;
     private readonly float _totalMemoryMb;
 
 
@@ -34,6 +37,7 @@ public partial class MainWindow
         CpuText.Text = "Initializing...";
         RamText.Text = "Initializing...";
         DiskText.Text = "Loading disks...";
+        _driveInfoCache = "Loading disks...";
         NetworkText.Text = "Detecting interface...";
 
 
@@ -139,25 +143,36 @@ public partial class MainWindow
         
         
 
-        if (DateTime.UtcNow - _lastDiskUpdate > TimeSpan.FromSeconds(10))
+        DiskText.Text = _driveInfoCache;
+
+        if (!_isUpdatingDriveInfo && DateTime.UtcNow - _lastDiskUpdate > TimeSpan.FromSeconds(10))
         {
-            var drives = DriveInfo.GetDrives()
-                .Where(d => d.IsReady && d.DriveType == DriveType.Fixed);
-
-            var sb = new StringBuilder();
-
-            foreach (var d in drives)
-            {
-                double total = d.TotalSize / (1024.0 * 1024 * 1024);           // GB
-                double free = d.AvailableFreeSpace / (1024.0 * 1024 * 1024);   // GB
-                double used = total - free;
-                double percentUsed = (used / total) * 100;
-
-                sb.AppendLine($"{d.Name} → {used:0.0} GB used / {total:0.0} GB ({percentUsed:0.0}%)");
-            }
-
-            DiskText.Text = sb.ToString();
+            _isUpdatingDriveInfo = true;
             _lastDiskUpdate = DateTime.UtcNow;
+            Task.Run(() =>
+            {
+                var drives = DriveInfo.GetDrives()
+                    .Where(d => d.IsReady && d.DriveType == DriveType.Fixed);
+
+                var sb = new StringBuilder();
+                foreach (var d in drives)
+                {
+                    double total = d.TotalSize / (1024.0 * 1024 * 1024);           // GB
+                    double free = d.AvailableFreeSpace / (1024.0 * 1024 * 1024);   // GB
+                    double used = total - free;
+                    double percentUsed = (used / total) * 100;
+
+                    sb.AppendLine($"{d.Name} → {used:0.0} GB used / {total:0.0} GB ({percentUsed:0.0}%)");
+                }
+
+                var result = sb.ToString();
+                Dispatcher.Invoke(() =>
+                {
+                    _driveInfoCache = result;
+                    DiskText.Text = result;
+                    _isUpdatingDriveInfo = false;
+                });
+            });
         }
 
         {
