@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using System.Runtime.InteropServices;
+using Microsoft.VisualBasic.Devices;
 
 namespace TrayX
 {
@@ -17,6 +18,7 @@ public partial class MainWindow : Window
     private PerformanceCounter netSentCounter;
     private PerformanceCounter netReceivedCounter;
     private DateTime lastDiskUpdate;
+    private readonly float totalMemoryMb;
 
 
     public MainWindow()
@@ -25,6 +27,7 @@ public partial class MainWindow : Window
 
         cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
         ramCounter = new PerformanceCounter("Memory", "Available MBytes");
+        totalMemoryMb = new ComputerInfo().TotalPhysicalMemory / (1024f * 1024f);
         
         CpuText.Text = "Initializing...";
         RamText.Text = "Initializing...";
@@ -100,7 +103,7 @@ public partial class MainWindow : Window
 
       
         var ramAvailable = ramCounter.NextValue();
-        var ramTotalMb = GetTotalMemoryInMBytes();
+        var ramTotalMb = totalMemoryMb;
         var ramUsedMb = ramTotalMb - ramAvailable;
 
         // Convert to GB
@@ -179,11 +182,6 @@ public partial class MainWindow : Window
         this.Hide(); // or this.Close(); if you want to exit
     }
 
-    private float GetTotalMemoryInMBytes()
-    {
-        var info = new Microsoft.VisualBasic.Devices.ComputerInfo();
-        return info.TotalPhysicalMemory / (1024f * 1024f);
-    }
 
     protected override void OnClosed(EventArgs e)
     {
