@@ -15,8 +15,8 @@ public partial class MainWindow
     private readonly PerformanceCounter _cpuCounter;
     private readonly PerformanceCounter _ramCounter;
     private readonly DispatcherTimer _timer;
-    private readonly PerformanceCounter _netSentCounter;
-    private readonly PerformanceCounter _netReceivedCounter;
+    private readonly PerformanceCounter? _netSentCounter;
+    private readonly PerformanceCounter? _netReceivedCounter;
     private DateTime _lastDiskUpdate;
     private readonly float _totalMemoryMb;
 
@@ -28,6 +28,8 @@ public partial class MainWindow
         _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
         _ramCounter = new PerformanceCounter("Memory", "Available MBytes");
         _totalMemoryMb = new ComputerInfo().TotalPhysicalMemory / (1024f * 1024f);
+        _netSentCounter = null;
+        _netReceivedCounter = null;
         
         CpuText.Text = "Initializing...";
         RamText.Text = "Initializing...";
@@ -54,6 +56,10 @@ public partial class MainWindow
         {
             _netSentCounter = new PerformanceCounter("Network Interface", "Bytes Sent/sec", activeInterface);
             _netReceivedCounter = new PerformanceCounter("Network Interface", "Bytes Received/sec", activeInterface);
+        }
+        else
+        {
+            NetworkText.Text = "No active interface";
         }
 
         Loaded += (_, _) =>
@@ -155,13 +161,20 @@ public partial class MainWindow
         }
 
         {
-            var sent = _netSentCounter.NextValue();       // bytes per second
-            var received = _netReceivedCounter.NextValue();
+            if (_netSentCounter != null && _netReceivedCounter != null)
+            {
+                var sent = _netSentCounter.NextValue();       // bytes per second
+                var received = _netReceivedCounter.NextValue();
 
-            var sentMbps = sent * 8 / 1_000_000;          // bits to megabits
-            var receivedMbps = received * 8 / 1_000_000;
+                var sentMbps = sent * 8 / 1_000_000;          // bits to megabits
+                var receivedMbps = received * 8 / 1_000_000;
 
-            NetworkText.Text = $"↓ {FormatValue(receivedMbps)}   ↑ {FormatValue(sentMbps)}";
+                NetworkText.Text = $"↓ {FormatValue(receivedMbps)}   ↑ {FormatValue(sentMbps)}";
+            }
+            else
+            {
+                NetworkText.Text = "No active interface";
+            }
         }
     }
 
@@ -182,8 +195,8 @@ public partial class MainWindow
         _timer.Stop();
         _cpuCounter.Dispose();
         _ramCounter.Dispose();
-        _netSentCounter.Dispose();
-        _netReceivedCounter.Dispose();
+        _netSentCounter?.Dispose();
+        _netReceivedCounter?.Dispose();
         base.OnClosed(e);
     }
 
