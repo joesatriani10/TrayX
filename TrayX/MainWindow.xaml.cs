@@ -10,24 +10,24 @@ using Microsoft.VisualBasic.Devices;
 
 namespace TrayX
 {
-public partial class MainWindow : Window
+public partial class MainWindow
 {
-    private PerformanceCounter cpuCounter;
-    private PerformanceCounter ramCounter;
-    private DispatcherTimer timer;
-    private PerformanceCounter netSentCounter;
-    private PerformanceCounter netReceivedCounter;
-    private DateTime lastDiskUpdate;
-    private readonly float totalMemoryMb;
+    private readonly PerformanceCounter _cpuCounter;
+    private readonly PerformanceCounter _ramCounter;
+    private readonly DispatcherTimer _timer;
+    private readonly PerformanceCounter _netSentCounter;
+    private readonly PerformanceCounter _netReceivedCounter;
+    private DateTime _lastDiskUpdate;
+    private readonly float _totalMemoryMb;
 
 
     public MainWindow()
     {
         InitializeComponent();
 
-        cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-        ramCounter = new PerformanceCounter("Memory", "Available MBytes");
-        totalMemoryMb = new ComputerInfo().TotalPhysicalMemory / (1024f * 1024f);
+        _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+        _ramCounter = new PerformanceCounter("Memory", "Available MBytes");
+        _totalMemoryMb = new ComputerInfo().TotalPhysicalMemory / (1024f * 1024f);
         
         CpuText.Text = "Initializing...";
         RamText.Text = "Initializing...";
@@ -35,15 +35,15 @@ public partial class MainWindow : Window
         NetworkText.Text = "Detecting interface...";
 
 
-        timer = new DispatcherTimer
+        _timer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(1)
         };
-        timer.Tick += Timer_Tick;
-        lastDiskUpdate = DateTime.MinValue;
-        timer.Start();
+        _timer.Tick += Timer_Tick;
+        _lastDiskUpdate = DateTime.MinValue;
+        _timer.Start();
         
-        // Get name of the first active network interface
+        // Get the name of the first active network interface
         var networkInterfaces = new PerformanceCounterCategory("Network Interface").GetInstanceNames();
         var activeInterface = networkInterfaces.FirstOrDefault(name =>
             !name.ToLower().Contains("loopback") &&
@@ -52,11 +52,11 @@ public partial class MainWindow : Window
 
         if (activeInterface != null)
         {
-            netSentCounter = new PerformanceCounter("Network Interface", "Bytes Sent/sec", activeInterface);
-            netReceivedCounter = new PerformanceCounter("Network Interface", "Bytes Received/sec", activeInterface);
+            _netSentCounter = new PerformanceCounter("Network Interface", "Bytes Sent/sec", activeInterface);
+            _netReceivedCounter = new PerformanceCounter("Network Interface", "Bytes Received/sec", activeInterface);
         }
 
-        Loaded += (s, e) =>
+        Loaded += (_, _) =>
         {
             var screen = SystemParameters.WorkArea;
             Left = screen.Right - Width - 10;
@@ -64,7 +64,7 @@ public partial class MainWindow : Window
         };
         
         this.Opacity = 0;
-        this.Loaded += (s, e) =>
+        this.Loaded += (_, _) =>
         {
             var fadeIn = new System.Windows.Media.Animation.DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.3))
             {
@@ -80,30 +80,30 @@ public partial class MainWindow : Window
     private void Timer_Tick(object sender, EventArgs e)
     {
         // CPU
-        var cpu = cpuCounter.NextValue();
+        var cpu = _cpuCounter.NextValue();
         CpuText.Text = $"{cpu:0.0}%";
 
-        if (cpu < 30)
+        switch (cpu)
         {
-            CpuText.Foreground = Brushes.LightGreen;
-            CpuText.ToolTip = "Low CPU usage";
-        }
-        else if (cpu < 70)
-        {
-            CpuText.Foreground = Brushes.Goldenrod;
-            CpuText.ToolTip = "Moderate CPU usage";
-        }
-        else
-        {
-            CpuText.Foreground = Brushes.OrangeRed;
-            CpuText.ToolTip = "High CPU usage";
+            case < 30:
+                CpuText.Foreground = Brushes.LightGreen;
+                CpuText.ToolTip = "Low CPU usage";
+                break;
+            case < 70:
+                CpuText.Foreground = Brushes.Goldenrod;
+                CpuText.ToolTip = "Moderate CPU usage";
+                break;
+            default:
+                CpuText.Foreground = Brushes.OrangeRed;
+                CpuText.ToolTip = "High CPU usage";
+                break;
         }
 
 
 
       
-        var ramAvailable = ramCounter.NextValue();
-        var ramTotalMb = totalMemoryMb;
+        var ramAvailable = _ramCounter.NextValue();
+        var ramTotalMb = _totalMemoryMb;
         var ramUsedMb = ramTotalMb - ramAvailable;
 
         // Convert to GB
@@ -133,7 +133,7 @@ public partial class MainWindow : Window
         
         
 
-        if (DateTime.UtcNow - lastDiskUpdate > TimeSpan.FromSeconds(10))
+        if (DateTime.UtcNow - _lastDiskUpdate > TimeSpan.FromSeconds(10))
         {
             var drives = DriveInfo.GetDrives()
                 .Where(d => d.IsReady && d.DriveType == DriveType.Fixed);
@@ -151,24 +151,18 @@ public partial class MainWindow : Window
             }
 
             DiskText.Text = sb.ToString();
-            lastDiskUpdate = DateTime.UtcNow;
+            _lastDiskUpdate = DateTime.UtcNow;
         }
-        
-        if (netSentCounter != null && netReceivedCounter != null)
+
         {
-            float sent = netSentCounter.NextValue();       // bytes per second
-            float received = netReceivedCounter.NextValue();
+            var sent = _netSentCounter.NextValue();       // bytes per second
+            var received = _netReceivedCounter.NextValue();
 
-            float sentMbps = sent * 8 / 1_000_000;          // bits to megabits
-            float receivedMbps = received * 8 / 1_000_000;
+            var sentMbps = sent * 8 / 1_000_000;          // bits to megabits
+            var receivedMbps = received * 8 / 1_000_000;
 
-            NetworkText.Text = $"↓ {formatValue(receivedMbps)}   ↑ {formatValue(sentMbps)}";
+            NetworkText.Text = $"↓ {FormatValue(receivedMbps)}   ↑ {FormatValue(sentMbps)}";
         }
-        else
-        {
-            NetworkText.Text = "No active interface detected";
-        }
-
     }
 
     private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -185,15 +179,15 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
-        timer.Stop();
-        cpuCounter.Dispose();
-        ramCounter.Dispose();
-        netSentCounter?.Dispose();
-        netReceivedCounter?.Dispose();
+        _timer.Stop();
+        _cpuCounter.Dispose();
+        _ramCounter.Dispose();
+        _netSentCounter.Dispose();
+        _netReceivedCounter.Dispose();
         base.OnClosed(e);
     }
-    
-    string formatValue(float val)
+
+    private static string FormatValue(float val)
     {
         return val >= 1 ? $"{val:0.00} Mbps" : $"{val * 1000:0} Kbps";
     }
@@ -203,18 +197,16 @@ public partial class MainWindow : Window
         try
         {
             var tempPath = Environment.GetEnvironmentVariable("TEMP");
-            if (!string.IsNullOrEmpty(tempPath))
+            if (string.IsNullOrEmpty(tempPath)) return;
+            Process.Start(new ProcessStartInfo
             {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "cmd.exe",
-                    Arguments = $"/C del /q/f/s \"{tempPath}\\*\"",
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    CreateNoWindow = true
-                });
+                FileName = "cmd.exe",
+                Arguments = $"/C del /q/f/s \"{tempPath}\\*\"",
+                WindowStyle = ProcessWindowStyle.Hidden,
+                CreateNoWindow = true
+            });
 
-                MessageBox.Show("Temporary files deleted (or scheduled for deletion).", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            MessageBox.Show("Temporary files deleted (or scheduled for deletion).", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
         {
@@ -246,8 +238,8 @@ public partial class MainWindow : Window
     {
         try
         {
-            uint flags = NativeMethods.SHERB_NOCONFIRMATION | NativeMethods.SHERB_NOPROGRESSUI | NativeMethods.SHERB_NOSOUND;
-            uint result = NativeMethods.SHEmptyRecycleBin(IntPtr.Zero, null, flags);
+            var flags = NativeMethods.SherbNoconfirmation | NativeMethods.SherbNoprogressui | NativeMethods.SherbNosound;
+            var result = NativeMethods.SHEmptyRecycleBin(IntPtr.Zero, null, flags);
 
             if (result == 0)
             {
@@ -270,9 +262,9 @@ public partial class MainWindow : Window
 internal static class NativeMethods
 {
     [DllImport("shell32.dll", SetLastError = true)]
-    internal static extern uint SHEmptyRecycleBin(IntPtr hwnd, string pszRootPath, uint dwFlags);
+    internal static extern uint SHEmptyRecycleBin(IntPtr hwnd, string? pszRootPath, uint dwFlags);
 
-    internal const uint SHERB_NOCONFIRMATION = 0x00000001;
-    internal const uint SHERB_NOPROGRESSUI   = 0x00000002;
-    internal const uint SHERB_NOSOUND        = 0x00000004;
+    internal const uint SherbNoconfirmation = 0x00000001;
+    internal const uint SherbNoprogressui   = 0x00000002;
+    internal const uint SherbNosound        = 0x00000004;
 }
