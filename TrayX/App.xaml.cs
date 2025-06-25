@@ -145,9 +145,10 @@ namespace TrayX
                 var flags = NativeMethods.SherbNoconfirmation | NativeMethods.SherbNoprogressui | NativeMethods.SherbNosound;
                 var result = NativeMethods.SHEmptyRecycleBin(IntPtr.Zero, null, flags);
 
-                if (result == 0)
+                if (result == 0 || result == NativeMethods.HresultSFalse)
                 {
-                    trayIcon.ShowBalloonTip("TrayX", "Recycle Bin emptied", BalloonIcon.Info);
+                    var message = result == 0 ? "Recycle Bin emptied" : "Recycle Bin already empty";
+                    trayIcon.ShowBalloonTip("TrayX", message, BalloonIcon.Info);
                 }
                 else
                 {
@@ -178,5 +179,7 @@ namespace TrayX
         internal const uint SherbNoconfirmation = 0x00000001;
         internal const uint SherbNoprogressui   = 0x00000002;
         internal const uint SherbNosound        = 0x00000004;
+        internal const uint HresultSFalse       = 0x00000001;
     }
 }
+
