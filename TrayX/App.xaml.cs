@@ -142,13 +142,26 @@ namespace TrayX
         {
             try
             {
+                // First query the Recycle Bin to avoid triggering an error when it is already empty
+                var info = new NativeMethods.SHQUERYRBINFO { cbSize = (uint)Marshal.SizeOf(typeof(NativeMethods.SHQUERYRBINFO)) };
+                var queryResult = NativeMethods.SHQueryRecycleBin(null, ref info);
+
+                if (queryResult == 0 && info.i64NumItems == 0)
+                {
+                    trayIcon.ShowBalloonTip("TrayX", "Recycle Bin already empty", BalloonIcon.Info);
+                    return;
+                }
+
                 var flags = NativeMethods.SherbNoconfirmation | NativeMethods.SherbNoprogressui | NativeMethods.SherbNosound;
                 var result = NativeMethods.SHEmptyRecycleBin(IntPtr.Zero, null, flags);
 
-                if (result == 0 || result == NativeMethods.HresultSFalse)
+                if (result == 0)
                 {
-                    var message = result == 0 ? "Recycle Bin emptied" : "Recycle Bin already empty";
-                    trayIcon.ShowBalloonTip("TrayX", message, BalloonIcon.Info);
+                    trayIcon.ShowBalloonTip("TrayX", "Recycle Bin emptied", BalloonIcon.Info);
+                }
+                else if (result == NativeMethods.HresultSFalse)
+                {
+                    trayIcon.ShowBalloonTip("TrayX", "Recycle Bin already empty", BalloonIcon.Info);
                 }
                 else
                 {
@@ -175,6 +188,17 @@ namespace TrayX
     {
         [DllImport("shell32.dll", SetLastError = true)]
         internal static extern uint SHEmptyRecycleBin(IntPtr hwnd, string? pszRootPath, uint dwFlags);
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct SHQUERYRBINFO
+        {
+            public uint cbSize;
+            public ulong i64Size;
+            public ulong i64NumItems;
+        }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+        internal static extern int SHQueryRecycleBin(string? pszRootPath, ref SHQUERYRBINFO pSHQueryRBInfo);
 
         internal const uint SherbNoconfirmation = 0x00000001;
         internal const uint SherbNoprogressui   = 0x00000002;
