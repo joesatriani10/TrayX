@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
 using Hardcodet.Wpf.TaskbarNotification;
 using Microsoft.Win32;
@@ -90,11 +92,91 @@ namespace TrayX
             }
         }
 
+        private void Tray_ClearTemp(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var tempPath = Environment.GetEnvironmentVariable("TEMP");
+                if (string.IsNullOrEmpty(tempPath)) return;
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/C del /q/f/s \"{tempPath}\\*\"",
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    CreateNoWindow = true
+                });
+
+                trayIcon.ShowBalloonTip("TrayX", "Temporary files deleted (or scheduled)", BalloonIcon.Info);
+            }
+            catch (Exception ex)
+            {
+                ErrorLogger.LogException(ex);
+                MessageBox.Show("An error occurred while clearing temporary files. Please check the log for details.",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Tray_FlushDns(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "ipconfig",
+                    Arguments = "/flushdns",
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    CreateNoWindow = true
+                });
+
+                trayIcon.ShowBalloonTip("TrayX", "DNS cache flushed", BalloonIcon.Info);
+            }
+            catch (Exception ex)
+            {
+                ErrorLogger.LogException(ex);
+                MessageBox.Show("An error occurred while flushing the DNS cache. Please check the log for details.",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Tray_EmptyRecycleBin(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var flags = NativeMethods.SherbNoconfirmation | NativeMethods.SherbNoprogressui | NativeMethods.SherbNosound;
+                var result = NativeMethods.SHEmptyRecycleBin(IntPtr.Zero, null, flags);
+
+                if (result == 0)
+                {
+                    trayIcon.ShowBalloonTip("TrayX", "Recycle Bin emptied", BalloonIcon.Info);
+                }
+                else
+                {
+                    MessageBox.Show($"Failed to empty Recycle Bin. Error code: {result}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorLogger.LogException(ex);
+                MessageBox.Show("An error occurred while emptying the Recycle Bin. Please check the log for details.",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private void Tray_Exit(object sender, RoutedEventArgs e)
         {
             trayIcon.Dispose();
             Shutdown();
         }
 
+    }
+
+    internal static class NativeMethods
+    {
+        [DllImport("shell32.dll", SetLastError = true)]
+        internal static extern uint SHEmptyRecycleBin(IntPtr hwnd, string? pszRootPath, uint dwFlags);
+
+        internal const uint SherbNoconfirmation = 0x00000001;
+        internal const uint SherbNoprogressui   = 0x00000002;
+        internal const uint SherbNosound        = 0x00000004;
     }
 }
