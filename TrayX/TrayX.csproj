@@ -17,8 +17,12 @@
       <None Remove="icon.ico" />
     </ItemGroup>
 
-    <ItemGroup>
+  <ItemGroup>
       <Resource Include="Resources\icon.ico" />
-    </ItemGroup>
+  </ItemGroup>
+
+  <ItemGroup>
+      <None Include="config.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
 </Project>

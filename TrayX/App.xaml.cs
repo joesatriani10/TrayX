@@ -1,16 +1,34 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System.Windows;
 using Hardcodet.Wpf.TaskbarNotification;
+using Microsoft.Win32;
 
 namespace TrayX
 {
     public partial class App : Application
     {
+        public static AppConfig Config { get; private set; } = AppConfig.Load();
         private TaskbarIcon trayIcon;
         private MainWindow mainWindow;
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            if (Config.AutoStart)
+            {
+                try
+                {
+                    using var key = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+                    var exe = Process.GetCurrentProcess().MainModule?.FileName;
+                    if (key != null && exe != null)
+                        key.SetValue("TrayX", exe);
+                }
+                catch (Exception ex)
+                {
+                    ErrorLogger.LogException(ex);
+                }
+            }
 
             // Try to load tray icon from XAML resource
             try
@@ -54,6 +72,21 @@ namespace TrayX
                     mainWindow.Show();
                 else
                     mainWindow.Activate();
+            }
+        }
+
+        private async void Tray_CleanRam(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await MemoryCleaner.CleanAsync();
+                trayIcon.ShowBalloonTip("TrayX", "RAM cleanup completed.", BalloonIcon.Info);
+            }
+            catch (Exception ex)
+            {
+                ErrorLogger.LogException(ex);
+                MessageBox.Show("An error occurred while cleaning RAM. Please check the log for details.",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

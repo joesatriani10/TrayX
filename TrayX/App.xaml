@@ -12,7 +12,7 @@
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="🖥️ Show Window" Click="Tray_ShowWindow"/>
-                    <MenuItem Header="🧹 Clean RAM (soon)" IsEnabled="False"/>
+                    <MenuItem Header="🧹 Clean RAM" Click="Tray_CleanRam"/>
                     <Separator/>
                     <MenuItem Header="❌ Exit" Click="Tray_Exit"/>
                 </ContextMenu>

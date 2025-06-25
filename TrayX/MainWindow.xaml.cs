@@ -11,6 +11,8 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using System.Runtime.InteropServices;
 using Microsoft.VisualBasic.Devices;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
 
 namespace TrayX
 {
@@ -24,6 +26,10 @@ public partial class MainWindow
     private DateTime _lastDiskUpdate;
     private bool _isUpdatingDriveInfo;
     private readonly float _totalMemoryMb;
+    public ObservableCollection<double> CpuHistory { get; }
+    public ObservableCollection<double> RamHistory { get; }
+    public ISeries[] CpuSeries { get; }
+    public ISeries[] RamSeries { get; }
     public ObservableCollection<DriveUsage> Drives { get; }
 
 
@@ -42,23 +48,37 @@ public partial class MainWindow
         NetworkText.Text = "Detecting interface...";
 
         Drives = new ObservableCollection<DriveUsage>();
+        CpuHistory = new ObservableCollection<double>();
+        RamHistory = new ObservableCollection<double>();
+
+        CpuSeries = new ISeries[] { new LineSeries<double> { Values = CpuHistory, Fill = null, GeometrySize = 0 } };
+        RamSeries = new ISeries[] { new LineSeries<double> { Values = RamHistory, Fill = null, GeometrySize = 0 } };
+
         DataContext = this;
 
 
         _timer = new DispatcherTimer
         {
-            Interval = TimeSpan.FromSeconds(1)
+            Interval = TimeSpan.FromSeconds(App.Config.UpdateIntervalSeconds)
         };
         _timer.Tick += Timer_Tick;
         _lastDiskUpdate = DateTime.MinValue;
         _timer.Start();
         
-        // Get the name of the first active network interface
+        // Get the name of the preferred network interface
         var networkInterfaces = new PerformanceCounterCategory("Network Interface").GetInstanceNames();
-        var activeInterface = networkInterfaces.FirstOrDefault(name =>
-            !name.Contains("loopback", StringComparison.OrdinalIgnoreCase) &&
-            !name.Contains("pseudo", StringComparison.OrdinalIgnoreCase) &&
-            !name.Contains("isatap", StringComparison.OrdinalIgnoreCase));
+        string? activeInterface = null;
+        if (!string.IsNullOrWhiteSpace(App.Config.NetworkInterface) && networkInterfaces.Contains(App.Config.NetworkInterface))
+        {
+            activeInterface = App.Config.NetworkInterface;
+        }
+        else
+        {
+            activeInterface = networkInterfaces.FirstOrDefault(name =>
+                !name.Contains("loopback", StringComparison.OrdinalIgnoreCase) &&
+                !name.Contains("pseudo", StringComparison.OrdinalIgnoreCase) &&
+                !name.Contains("isatap", StringComparison.OrdinalIgnoreCase));
+        }
 
         if (activeInterface != null)
         {
@@ -96,6 +116,8 @@ public partial class MainWindow
         // CPU
         var cpu = _cpuCounter.NextValue();
         CpuText.Text = $"{cpu:0.0}%";
+        CpuHistory.Add(cpu);
+        if (CpuHistory.Count > 60) CpuHistory.RemoveAt(0);
 
         switch (cpu)
         {
@@ -124,6 +146,9 @@ public partial class MainWindow
         var ramTotalGb = ramTotalMb / 1024.0;
         var ramUsedGb = ramUsedMb / 1024.0;
         var ramPercent = (ramUsedGb / ramTotalGb) * 100;
+
+        RamHistory.Add(ramPercent);
+        if (RamHistory.Count > 60) RamHistory.RemoveAt(0);
         
         if (ramPercent < 50)
         {
