@@ -182,3 +182,4 @@ namespace TrayX
         internal const uint HresultSFalse       = 0x00000001;
     }
 }
+
