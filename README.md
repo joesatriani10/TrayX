@@ -16,7 +16,10 @@ Built with WPF and .NET 8, it’s designed for IT professionals and power users 
     - Clear temp folder
     - Flush DNS
     - Empty recycle bin
+    - Clean RAM usage
 - 🌐 Designed for future **remote admin dashboard integration**
+- 📊 Historical graphs for CPU and RAM usage
+- ⚙️ Configurable network interface, update interval, and optional auto-start
 - 🚀 Runs silently from the **system tray**
 - 🎨 Modern, minimalist UI (JetBrains-style)
 

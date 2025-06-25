@@ -1,6 +1,7 @@
 ﻿<Window x:Class="TrayX.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
         Title="TrayX" Width="450" Height="400"
         WindowStyle="None" ResizeMode="NoResize"
         AllowsTransparency="True" Background="Transparent"
@@ -146,10 +147,17 @@
                     <TextBlock Text="Memory:" Grid.Column="0"
                                FontSize="13" Foreground="#BBBBBB"
                                Margin="0,25,0,0"/>
-                    <TextBlock x:Name="RamText" Grid.Column="1"
+                <TextBlock x:Name="RamText" Grid.Column="1"
                                FontSize="13" Foreground="White"
                                Margin="0,25,0,0"/>
                 </Grid>
+
+                <StackPanel Margin="0 10 0 10">
+                    <TextBlock Text="CPU Usage (last 60s)" FontSize="12" Foreground="#BBBBBB"/>
+                    <lvc:CartesianChart Series="{Binding CpuSeries}" Height="80" Margin="0,0,0,5"/>
+                    <TextBlock Text="RAM Usage (last 60s)" FontSize="12" Foreground="#BBBBBB"/>
+                    <lvc:CartesianChart Series="{Binding RamSeries}" Height="80"/>
+                </StackPanel>
 
                 <!-- Disks -->
                 <TextBlock Text="💽 Disks"
@@ -193,21 +201,6 @@
                                TextWrapping="Wrap"/>
                 </Border>
 
-                <!-- Maintenance -->
-                <TextBlock Text="🧰 Maintenance"
-                           FontSize="13" FontWeight="Bold"
-                           Foreground="#BBBBBB" Margin="0 0 0 5"/>
-                <UniformGrid Columns="3" Margin="0,0,0,10">
-                    <Button Style="{StaticResource CleanButtonStyle}"
-                            Content="🧹 Clear Temp"
-                            Click="ClearTemp_Click"/>
-                    <Button Style="{StaticResource CleanButtonStyle}"
-                            Content="🌐 Flush DNS"
-                            Click="FlushDns_Click"/>
-                    <Button Style="{StaticResource CleanButtonStyle}"
-                            Content="🗑 Empty Recycle Bin"
-                            Click="EmptyRecycleBin_Click"/>
-                </UniformGrid>
 
             </StackPanel>
         </ScrollViewer>
