@@ -1,0 +1,5 @@
+{
+  "UpdateIntervalSeconds": 1,
+  "NetworkInterface": "",
+  "AutoStart": false
+}
