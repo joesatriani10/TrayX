@@ -15,6 +15,9 @@
 
     <ItemGroup>
       <None Remove="icon.ico" />
+      <None Update="Config\config.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
   <ItemGroup>
@@ -22,7 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
-      <None Include="config.json" CopyToOutputDirectory="PreserveNewest" />
+    <Page Update="UI\MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <XamlRuntime>Wpf</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 
 </Project>
