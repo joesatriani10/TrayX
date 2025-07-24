@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.IO;
 using System.Windows;
 using Hardcodet.Wpf.TaskbarNotification;
 using Microsoft.Win32;
@@ -136,6 +138,12 @@ namespace TrayX
                 MessageBox.Show("An error occurred while flushing the DNS cache. Please check the log for details.",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void Tray_ListStartupPrograms(object sender, RoutedEventArgs e)
+        {
+           var startupPrograms = new StartupPrograms();
+           startupPrograms.Tray_ListStartupPrograms();
         }
 
         private void Tray_EmptyRecycleBin(object sender, RoutedEventArgs e)
