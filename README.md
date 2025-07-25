@@ -46,4 +46,4 @@ dotnet run
 ```
 
 🧑‍💻 License
-MIT — feel free to fork and contribute.
+TrayX is licensed under the [MIT License](LICENSE).
