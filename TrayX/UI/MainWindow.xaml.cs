@@ -90,12 +90,7 @@ public partial class MainWindow
             NetworkText.Text = "No active interface";
         }
 
-        Loaded += (_, _) =>
-        {
-            var screen = SystemParameters.WorkArea;
-            Left = screen.Right - Width - 10;
-            Top = screen.Bottom - Height - 10;
-        };
+
         
         this.Opacity = 0;
         this.Loaded += (_, _) =>

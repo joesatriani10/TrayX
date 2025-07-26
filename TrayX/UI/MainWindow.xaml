@@ -6,7 +6,8 @@
         WindowStyle="None" ResizeMode="NoResize"
         AllowsTransparency="True" Background="Transparent"
         ShowInTaskbar="False" WindowStartupLocation="CenterScreen"
-        Opacity="0">
+        Opacity="0"
+        MouseDown="Window_MouseDown">
 
     <Window.Resources>
         <!-- Colors and resources -->

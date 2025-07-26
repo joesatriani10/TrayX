@@ -33,9 +33,16 @@ namespace TrayX
                 trayIcon.TrayLeftMouseDown += (s, _) =>
                 {
                     if (!mainWindow.IsVisible)
+                    {
+                        var screen = SystemParameters.WorkArea;
+                        mainWindow.Left = screen.Left + (screen.Width - mainWindow.Width) / 2;
+                        mainWindow.Top = screen.Top + (screen.Height - mainWindow.Height) / 2;
                         mainWindow.Show();
+                    }
                     else
+                    {
                         mainWindow.Activate();
+                    }
                 };
             }
             catch (Exception ex)
@@ -58,9 +65,16 @@ namespace TrayX
             if (mainWindow != null)
             {
                 if (!mainWindow.IsVisible)
+                {
+                    var screen = SystemParameters.WorkArea;
+                    mainWindow.Left = screen.Left + (screen.Width - mainWindow.Width) / 2;
+                    mainWindow.Top = screen.Top + (screen.Height - mainWindow.Height) / 2;
                     mainWindow.Show();
+                }
                 else
+                {
                     mainWindow.Activate();
+                }
             }
         }
 
