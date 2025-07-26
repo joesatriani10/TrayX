@@ -24,7 +24,15 @@ namespace TrayX
 
             try
             {
-                var trayManager = new TrayIconManager();
+                trayIcon = (TaskbarIcon)FindResource("TrayIcon");
+                mainWindow = new MainWindow();
+                trayIcon.TrayLeftMouseDown += (s, _) =>
+                {
+                    if (!mainWindow.IsVisible)
+                        mainWindow.Show();
+                    else
+                        mainWindow.Activate();
+                };
             }
             catch (Exception ex)
             {
