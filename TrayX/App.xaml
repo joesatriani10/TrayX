@@ -11,14 +11,14 @@
 
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="🖥️ Show Window" Click="Tray_ShowWindow"/>
-                    <MenuItem Header="🧹 Clean RAM" Click="Tray_CleanRam"/>
-                    <MenuItem Header="🧹 Clear Temp" Click="Tray_ClearTemp"/>
-                    <MenuItem Header="🌐 Flush DNS" Click="Tray_FlushDns"/>
-                    <MenuItem Header="📋 Startup Programs" Click="Tray_ListStartupPrograms"/>
-                    <MenuItem Header="🗑 Empty Recycle Bin" Click="Tray_EmptyRecycleBin"/>
+                    <MenuItem Header="Show Window" Click="Tray_ShowWindow"/>
+                    <MenuItem Header="Clean RAM" Click="Tray_CleanRam"/>
+                    <MenuItem Header="Clear Temp" Click="Tray_ClearTemp"/>
+                    <MenuItem Header="Flush DNS" Click="Tray_FlushDns"/>
+                    <MenuItem Header="Startup Programs" Click="Tray_ListStartupPrograms"/>
+                    <MenuItem Header="Empty Recycle Bin" Click="Tray_EmptyRecycleBin"/>
                     <Separator/>
-                    <MenuItem Header="❌ Exit" Click="Tray_Exit"/>
+                    <MenuItem Header="Exit" Click="Tray_Exit"/>
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </taskbarNotification:TaskbarIcon>
