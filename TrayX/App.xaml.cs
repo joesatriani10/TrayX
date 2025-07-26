@@ -21,6 +21,10 @@ namespace TrayX
         {
             base.OnStartup(e);
             RegistryHelper.SetAutoStartIfEnabled(AppConfig.Load());
+            
+            Console.WriteLine($"Antivirus Installed: {AntivirusService.IsAntivirusInstalled()}");
+            Console.WriteLine($"Antivirus Name: {AntivirusService.GetAntivirusName()}");
+            Console.WriteLine($"Antivirus Updated: {AntivirusService.IsAntivirusUpdated()}");
 
             try
             {
@@ -40,6 +44,7 @@ namespace TrayX
                 MessageBox.Show("TrayX could not initialize properly.");
                 Shutdown();
             }
+            
         }
 
         protected override void OnExit(ExitEventArgs e)
